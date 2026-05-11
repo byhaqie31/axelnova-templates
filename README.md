@@ -55,8 +55,10 @@ URLs:
 
 ## Trimming what you don't need
 
-- **Frontend-only tool** → `rm -rf apps/api apps/puppeteer`, remove their services from `docker-compose.yml`, drop API/puppeteer env vars from `.env.example`.
-- **No PDF** → `rm -rf apps/puppeteer`, remove the `puppeteer` service from compose, drop `PUPPETEER_URL`.
+For each app you delete, also remove its job from `.github/workflows/build-check.yml` and its service from both `docker-compose.yml` and `docker-compose.prod.yml`.
+
+- **Frontend-only tool** → `rm -rf apps/api apps/puppeteer`, drop the `api` + `puppeteer` jobs from `build-check.yml`, remove both services from the compose files, drop API/puppeteer env vars from `.env.example`.
+- **No PDF** → `rm -rf apps/puppeteer`, drop the `puppeteer` job from `build-check.yml`, remove the service from the compose files, drop `PUPPETEER_URL`.
 - **No backend** → as above (frontend-only), and remove the `useApi` server-side branch.
 
 ## Conventions enforced

@@ -1,5 +1,8 @@
 name: build-check
 
+# Cloned tools: delete any job below for an app/ you remove from this repo.
+# The template itself is skipped via the is_template guard.
+
 on:
   pull_request:
     branches: [main, uat]
@@ -8,7 +11,7 @@ jobs:
   web:
     name: web · build
     runs-on: ubuntu-latest
-    if: ${{ hashFiles('apps/web/package.json') != '' }}
+    if: github.event.repository.is_template == false
     defaults:
       run:
         working-directory: apps/web
@@ -25,7 +28,7 @@ jobs:
   api:
     name: api · install
     runs-on: ubuntu-latest
-    if: ${{ hashFiles('apps/api/composer.json') != '' }}
+    if: github.event.repository.is_template == false
     defaults:
       run:
         working-directory: apps/api
@@ -41,7 +44,7 @@ jobs:
   puppeteer:
     name: puppeteer · build
     runs-on: ubuntu-latest
-    if: ${{ hashFiles('apps/puppeteer/package.json') != '' }}
+    if: github.event.repository.is_template == false
     defaults:
       run:
         working-directory: apps/puppeteer

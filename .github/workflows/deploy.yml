@@ -8,6 +8,8 @@ on:
 jobs:
   deploy:
     name: Deploy to VPS
+    # Skip on the template repo itself; only run on repos cloned from it.
+    if: github.event.repository.is_template == false
     runs-on: ubuntu-latest
     concurrency:
       group: deploy-${{ github.ref }}

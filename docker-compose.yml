@@ -1,0 +1,91 @@
+name: ${PROJECT_SLUG:-axelnova-tool}
+
+services:
+  web:
+    container_name: ${PROJECT_SLUG:-axelnova-tool}-web-dev
+    build:
+      context: ./apps/web
+      target: dev
+    working_dir: /app
+    command: sh -c "npm install && npm run dev -- --host 0.0.0.0"
+    environment:
+      NUXT_PUBLIC_API_BASE: ${NUXT_PUBLIC_API_BASE:-http://localhost:8010}
+      NUXT_API_BASE_INTERNAL: ${NUXT_API_BASE_INTERNAL:-http://api:8000}
+      NITRO_PORT: "3000"
+      HOST: "0.0.0.0"
+    ports:
+      - "127.0.0.1:${HOST_PORT_WEB:-3010}:3000"
+    volumes:
+      - ./apps/web:/app
+      - web_node_modules:/app/node_modules
+    networks:
+      - axelnova-shared
+    restart: unless-stopped
+    depends_on:
+      - api
+
+  api:
+    container_name: ${PROJECT_SLUG:-axelnova-tool}-api-dev
+    build:
+      context: ./apps/api
+      target: dev
+    working_dir: /var/www/html
+    command: sh -c "composer install --no-interaction --prefer-dist && php artisan serve --host=0.0.0.0 --port=8000"
+    environment:
+      APP_KEY: ${APP_KEY}
+      APP_ENV: local
+      APP_DEBUG: "true"
+      ADMIN_API_TOKEN: ${ADMIN_API_TOKEN}
+      DB_CONNECTION: mysql
+      DB_HOST: ${DB_HOST:-mysql}
+      DB_PORT: ${DB_PORT:-3306}
+      DB_DATABASE: ${DB_DATABASE}
+      DB_USERNAME: ${DB_USERNAME}
+      DB_PASSWORD: ${DB_PASSWORD}
+      CACHE_STORE: ${CACHE_STORE:-database}
+      QUEUE_CONNECTION: ${QUEUE_CONNECTION:-sync}
+      SESSION_DRIVER: ${SESSION_DRIVER:-file}
+      PUPPETEER_URL: ${PUPPETEER_URL:-http://puppeteer:3000}
+      FRONTEND_INTERNAL_URL: ${FRONTEND_INTERNAL_URL:-http://web:3000}
+    ports:
+      - "127.0.0.1:${HOST_PORT_API:-8010}:8000"
+    volumes:
+      - ./apps/api:/var/www/html
+      - api_vendor:/var/www/html/vendor
+    networks:
+      - axelnova-shared
+    restart: unless-stopped
+
+  puppeteer:
+    container_name: ${PROJECT_SLUG:-axelnova-tool}-puppeteer-dev
+    build:
+      context: ./apps/puppeteer
+      target: dev
+    working_dir: /app
+    command: sh -c "npm install && npm run dev"
+    environment:
+      PUPPETEER_CACHE_DIR: /app/.cache/puppeteer
+    volumes:
+      - ./apps/puppeteer:/app
+      - puppeteer_node_modules:/app/node_modules
+      - puppeteer_chromium_cache:/app/.cache
+    networks:
+      - axelnova-shared
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "wget", "--spider", "-q", "http://localhost:3000/health"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 20s
+
+volumes:
+  web_node_modules:
+  api_vendor:
+  puppeteer_node_modules:
+  puppeteer_chromium_cache:
+
+networks:
+  axelnova-shared:
+    external: true
+    name: axelnova-shared

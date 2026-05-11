@@ -1,0 +1,70 @@
+name: ${PROJECT_SLUG:-axelnova-tool}
+
+services:
+  web:
+    container_name: ${PROJECT_SLUG:-axelnova-tool}-web
+    build:
+      context: ./apps/web
+      target: runtime
+    command: node .output/server/index.mjs
+    environment:
+      NUXT_PUBLIC_API_BASE: ${NUXT_PUBLIC_API_BASE}
+      NUXT_API_BASE_INTERNAL: ${NUXT_API_BASE_INTERNAL:-http://api:8000}
+      NITRO_PORT: "3000"
+      HOST: "0.0.0.0"
+    ports:
+      - "127.0.0.1:${HOST_PORT_WEB}:3000"
+    networks:
+      - axelnova-shared
+    restart: unless-stopped
+    depends_on:
+      - api
+
+  api:
+    container_name: ${PROJECT_SLUG:-axelnova-tool}-api
+    build:
+      context: ./apps/api
+      target: runtime
+    environment:
+      APP_KEY: ${APP_KEY}
+      APP_ENV: production
+      APP_DEBUG: "false"
+      ADMIN_API_TOKEN: ${ADMIN_API_TOKEN}
+      DB_CONNECTION: mysql
+      DB_HOST: ${DB_HOST:-mysql}
+      DB_PORT: ${DB_PORT:-3306}
+      DB_DATABASE: ${DB_DATABASE}
+      DB_USERNAME: ${DB_USERNAME}
+      DB_PASSWORD: ${DB_PASSWORD}
+      CACHE_STORE: ${CACHE_STORE:-database}
+      QUEUE_CONNECTION: ${QUEUE_CONNECTION:-sync}
+      SESSION_DRIVER: ${SESSION_DRIVER:-file}
+      PUPPETEER_URL: ${PUPPETEER_URL:-http://puppeteer:3000}
+      FRONTEND_INTERNAL_URL: ${FRONTEND_INTERNAL_URL:-http://web:3000}
+    ports:
+      - "127.0.0.1:${HOST_PORT_API}:8000"
+    volumes:
+      - ${DATA_DIR:-./data}/storage:/var/www/html/storage
+    networks:
+      - axelnova-shared
+    restart: unless-stopped
+
+  puppeteer:
+    container_name: ${PROJECT_SLUG:-axelnova-tool}-puppeteer
+    build:
+      context: ./apps/puppeteer
+      target: runtime
+    networks:
+      - axelnova-shared
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "wget", "--spider", "-q", "http://localhost:3000/health"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 20s
+
+networks:
+  axelnova-shared:
+    external: true
+    name: axelnova-shared

@@ -1,0 +1,42 @@
+# Env
+.env
+.env.*
+!.env.example
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Editor
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Node (apps/web, apps/puppeteer)
+node_modules/
+.nuxt/
+.output/
+.data/
+dist/
+*.log
+.cache/
+
+# PHP (apps/api)
+vendor/
+storage/app/*
+!storage/app/.gitkeep
+storage/framework/cache/*
+!storage/framework/cache/.gitkeep
+storage/framework/sessions/*
+!storage/framework/sessions/.gitkeep
+storage/framework/views/*
+!storage/framework/views/.gitkeep
+storage/logs/*
+!storage/logs/.gitkeep
+bootstrap/cache/*
+!bootstrap/cache/.gitkeep
+.phpunit.result.cache
+
+# Docker
+docker-compose.override.yml
